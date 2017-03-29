@@ -9,3 +9,6 @@
 
 compiled/PixelPusher.jar
 /bin
+/nbproject/private/
+/build/
+/dist/
