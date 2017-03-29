@@ -10,9 +10,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import com.heroicrobot.dropbit.common.ByteUtils;
 import com.heroicrobot.dropbit.devices.DeviceImpl;
 import com.heroicrobot.dropbit.discovery.DeviceHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PixelPusher extends DeviceImpl
   implements java.lang.Comparable<PixelPusher> {
+  
+  private static final Logger LOGGER = LoggerFactory.getLogger(PixelPusher
+          .class.getName());
   private static final int ACCEPTABLE_LOWEST_SW_REV = 121;
   /**
    * uint8_t strips_attached;
@@ -223,9 +228,11 @@ public class PixelPusher extends DeviceImpl
   public void increaseExtraDelay(long i) {
     if (autothrottle) {
       extraDelayMsec += i;
-      System.err.println("Group "+groupOrdinal+" card "+controllerOrdinal+" extra delay now "+extraDelayMsec);
+      LOGGER.error("Group {} card {} extra delay now {}", groupOrdinal,
+              controllerOrdinal, extraDelayMsec);
     } else {
-      System.err.println("Group "+groupOrdinal+" card "+controllerOrdinal+" would increase delay, but autothrottle is disabled.");
+      LOGGER.error("Group {} card {} would increase delay, but autothrottle is disabled.",
+              groupOrdinal, controllerOrdinal);
     }
   }
 
@@ -284,9 +291,11 @@ public class PixelPusher extends DeviceImpl
     commandQueue = new ArrayBlockingQueue<PusherCommand>(3);
     
     if (super.getSoftwareRevision() < ACCEPTABLE_LOWEST_SW_REV) {
-       System.err.println("WARNING!  This PixelPusher Library requires firmware revision "+ACCEPTABLE_LOWEST_SW_REV/100.0);
-       System.err.println("WARNING!  This PixelPusher is using "+super.getSoftwareRevision()/100.0);
-       System.err.println("WARNING!  This is not expected to work.  Please update your PixelPusher.");
+       LOGGER.error("WARNING!  This PixelPusher Library requires firmware revision {}",
+               ACCEPTABLE_LOWEST_SW_REV/100.0);
+       LOGGER.error("WARNING!  This PixelPusher is using {}",
+               super.getSoftwareRevision()/100.0);
+       LOGGER.error("WARNING!  This is not expected to work.  Please update your PixelPusher.");
     }
     if (packet.length < 28) {
       throw new IllegalArgumentException();

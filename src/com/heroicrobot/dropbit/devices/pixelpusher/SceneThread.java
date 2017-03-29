@@ -7,9 +7,13 @@ import java.util.Observer;
 import java.util.concurrent.Semaphore;
 
 import com.heroicrobot.dropbit.registry.DeviceRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SceneThread extends Thread implements Observer {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(SceneThread
+          .class.getName());
   private Map<String, PixelPusher> pusherMap;
   private Map<String, CardThread> cardThreadMap;
   //private Map<Long, Long> powerDomainMap;
@@ -72,7 +76,7 @@ public class SceneThread extends Thread implements Observer {
           try {
             Thread.sleep(200);
           } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOGGER.error(e.getMessage(), e);
           }
        }
      }
@@ -137,7 +141,7 @@ public class SceneThread extends Thread implements Observer {
           }
         }
       } catch (java.util.ConcurrentModificationException cme) {
-        System.err.println("Concurrent modification exception attempting to generate the new pusher map.");
+        LOGGER.error("Concurrent modification exception attempting to generate the new pusher map.");
         listSemaphore.release();
         return;
       }
@@ -148,7 +152,7 @@ public class SceneThread extends Thread implements Observer {
           }
         }
       } catch (java.util.ConcurrentModificationException cme) {
-        System.err.println("Concurrent modification exception attempting to generate the dead pusher map.");
+        LOGGER.error("Concurrent modification exception attempting to generate the dead pusher map.");
         listSemaphore.release();
         return;
       }
@@ -157,7 +161,7 @@ public class SceneThread extends Thread implements Observer {
         CardThread newCardThread = new CardThread(newPusherMap.get(key),
             ((DeviceRegistry) observable));
         if (running) {
-          System.out.println("Making a new CardThread for "+key);
+          LOGGER.info("Making a new CardThread for {}", key);
           newCardThread.start();
           newCardThread.setExtraDelay(extraDelay);
           newCardThread.setAntiLog(useAntiLog);
@@ -168,11 +172,12 @@ public class SceneThread extends Thread implements Observer {
         cardThreadMap.put(key, newCardThread);
       }
       for (String key : deadPusherMap.keySet()) {
-        System.out.println("Killing old CardThread " + key);
+        LOGGER.info("Killing old CardThread {}", key);
         try {
           cardThreadMap.get(key).shutDown();
         } catch (NullPointerException npe) {
-          System.err.println("Tried to kill CardThread for MAC "+key+", but it was already gone.");
+          LOGGER.error("Tried to kill CardThread for MAC {}, but it was already gone.",
+                  key);
         }
         cardThreadMap.remove(key);
         pusherMap.remove(key);
@@ -203,7 +208,7 @@ public class SceneThread extends Thread implements Observer {
           try {
             frameCallbackObject.getClass().getMethod(frameCallbackMethod).invoke(frameCallbackObject,(Object[])null);
           } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error(e.getMessage(), e);
           }
         }
       }

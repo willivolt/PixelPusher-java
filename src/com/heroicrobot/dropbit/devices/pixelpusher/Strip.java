@@ -1,9 +1,13 @@
 package com.heroicrobot.dropbit.devices.pixelpusher;
 
 import java.util.Arrays;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Strip {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(Strip.class
+          .getName());
   private Pixel[] pixels;
   private PixelPusher pusher;
   /**
@@ -199,8 +203,8 @@ public class Strip {
       } else
         this.pixels[position].red = intensity;
     } catch (NullPointerException nope) {
-      System.err.println("Tried to write to pixel "+position+" but it wasn't there.");
-      nope.printStackTrace();
+      LOGGER.error("Tried to write to pixel {} but it wasn't there.", position,
+              nope);
     }
     this.touched = true;
     pushedAt = 0;
@@ -216,8 +220,8 @@ public class Strip {
       } else
       this.pixels[position].blue = intensity;
     } catch (NullPointerException nope) {
-      System.err.println("Tried to write to pixel "+position+" but it wasn't there.");
-      nope.printStackTrace();
+      LOGGER.error("Tried to write to pixel {} but it wasn't there.", position,
+              nope);
     }
     this.touched = true;
     pushedAt = 0;
@@ -233,8 +237,8 @@ public class Strip {
       } else
       this.pixels[position].green = intensity;
     } catch (NullPointerException nope) {
-      System.err.println("Tried to write to pixel "+position+" but it wasn't there.");
-      nope.printStackTrace();
+      LOGGER.error("Tried to write to pixel {} but it wasn't there.", position,
+              nope);
     }
     this.touched = true;
     pushedAt = 0;
@@ -250,8 +254,8 @@ public class Strip {
       } else
       this.pixels[position].orange = intensity;
     } catch (NullPointerException nope) {
-      System.err.println("Tried to write to pixel "+position+" but it wasn't there.");
-      nope.printStackTrace();
+      LOGGER.error("Tried to write to pixel {} but it wasn't there.", position,
+              nope);
     }
     this.touched = true;
     pushedAt = 0;
@@ -267,8 +271,8 @@ public synchronized void setPixelWhite(byte intensity, int position) {
       } else
       this.pixels[position].white = intensity;
     } catch (NullPointerException nope) {
-      System.err.println("Tried to write to pixel "+position+" but it wasn't there.");
-      nope.printStackTrace();
+      LOGGER.error("Tried to write to pixel {} but it wasn't there.", position,
+              nope);
     }
     this.touched = true;
     pushedAt = 0;
@@ -284,8 +288,8 @@ public synchronized void setPixelWhite(byte intensity, int position) {
       else
         this.pixels[position].setColor(color);
     } catch (NullPointerException nope) {
-      System.err.println("Tried to write to pixel "+position+" but it wasn't there.");
-      nope.printStackTrace();
+      LOGGER.error("Tried to write to pixel {} but it wasn't there.", position,
+              nope);
     }
     this.touched = true;
     pushedAt = 0;

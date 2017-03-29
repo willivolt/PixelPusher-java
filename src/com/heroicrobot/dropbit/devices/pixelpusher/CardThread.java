@@ -12,8 +12,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.heroicrobot.dropbit.common.ByteUtils;
 import com.heroicrobot.dropbit.registry.DeviceRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CardThread extends Thread {
+  
+  private static final Logger LOGGER = LoggerFactory.getLogger(CardThread
+          .class.getName());
 
   private long threadSleepMsec = 4;
   private long threadExtraDelayMsec = 0;
@@ -45,7 +50,7 @@ public class CardThread extends Thread {
     try {
       this.udpsocket = new DatagramSocket();
     } catch (SocketException se) {
-      System.err.println("SocketException: " + se.getMessage());
+      LOGGER.error("SocketException", se);
     }
     maxPacketSize = 4 +  ((1 + 3 * pusher.getPixelsPerStrip()) * pusher.getMaxStripsPerPacket());
     this.packet = new byte[maxPacketSize];
@@ -132,15 +137,15 @@ public class CardThread extends Thread {
         fileIsOpen = false;
         recordFile.close();
       } catch (IOException e) {
-        e.printStackTrace();
+        LOGGER.error(e.getMessage(), e);
       }
     this.cancel = true;
     while (!terminated) {
       try {
         Thread.sleep(10);
       } catch (InterruptedException e) {
-        System.err.println("Interrupted terminating CardThread "+pusher.getMacAddress());
-        e.printStackTrace();
+        LOGGER.error("Interrupted terminating CardThread {}",
+                pusher.getMacAddress(), e);
       }
     }
   }
@@ -158,18 +163,18 @@ public class CardThread extends Thread {
     List<Strip> remainingStrips;
 
     if (!pusher.hasTouchedStrips()) {
-      //System.out.println("Yielding because no touched strips.");
+      LOGGER.trace("Yielding because no touched strips.");
       if (pusher.commandQueue.isEmpty())
         return 0;
     }
 
     if (pusher.isBusy()) {
-      //System.out.println("Yielding because pusher is busy.");
+      LOGGER.trace("Yielding because pusher is busy.");
       return 0;
     }
 
     pusher.makeBusy();
-    //System.out.println("Making pusher busy.");
+    LOGGER.trace("Making pusher busy.");
 
     remainingStrips = new CopyOnWriteArrayList<Strip>(pusher.getStrips());
     stripsInDatagram = 0;
@@ -204,7 +209,8 @@ public class CardThread extends Thread {
 
       if (!(pusher.commandQueue.isEmpty())) {
         commandSent = true;
-        System.out.println("Pusher "+pusher.getMacAddress()+" has a PusherCommand outstanding.");
+        LOGGER.info("Pusher {} has a PusherCommand outstanding.",
+                pusher.getMacAddress());
         PusherCommand pc = pusher.commandQueue.remove();
         byte[] commandBytes= pc.generateBytes();
 
@@ -226,7 +232,7 @@ public class CardThread extends Thread {
         try {
           udpsocket.send(udppacket);
         } catch (IOException ioe) {
-          System.err.println("IOException: " + ioe.getMessage());
+          LOGGER.error("IOException: ", ioe);
         }
 
         totalLength += packetLength;
@@ -286,7 +292,7 @@ public class CardThread extends Thread {
               recordFile.write(stripPacket);
             } catch (IOException e) {
               // TODO Auto-generated catch block
-              e.printStackTrace();
+              LOGGER.error(e.getMessage(), e);
             }
           }
           for (int j = 0; j < stripPacket.length; j++) {
@@ -296,7 +302,7 @@ public class CardThread extends Thread {
           payload = true;
         }
         if (payload) {
-          //System.out.println("Got a payload to send to "+cardAddress);
+          LOGGER.trace("Got a payload to send to {}", cardAddress);
           packetNumber++;
           /* System.err.println(" Packet number array = length "+ packetLength +
            *      " seq "+ packetNumber +" data " + String.format("%02x, %02x, %02x, %02x",
@@ -306,9 +312,9 @@ public class CardThread extends Thread {
               pusherPort);
           try {
             udpsocket.send(udppacket);
-            //System.out.println("Sent it.");
+            LOGGER.trace("Sent it.");
           } catch (IOException ioe) {
-            System.err.println("IOException: " + ioe.getMessage());
+            LOGGER.error("IOException: ", ioe);
           }
         }
         totalLength += packetLength;
@@ -319,10 +325,10 @@ public class CardThread extends Thread {
       try {
         Thread.sleep(totalDelay);
       } catch (InterruptedException e) {
-        e.printStackTrace();
+        LOGGER.error("InterruptedException", e);
       }
     }
-    //System.out.println("Clearing busy.");
+    LOGGER.trace("Clearing busy.");
     pusher.clearBusy();
     return totalLength;
   }
